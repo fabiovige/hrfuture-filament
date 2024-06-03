@@ -20,7 +20,7 @@
     "Education id": "Escolaridade",
     "Ethnicity id": "Etnia",
     "Has experience": "Possui Experiência",
-    "Has disability": "Possui Deficiência",
+    "Has disability": "PNE",
     "Has travel": "Disponibilidade para Viagem",
     "Has language": "Possui Idioma",
     "Company": "Empresa",
@@ -37,5 +37,6 @@
     "Skyll id": "Habilidades",
     "Vacancie": "Vagas",
     "Experience id": "Experiência",
-    "Language id": "Idiomas"
+    "Language id": "Idiomas",
+    "Skylls": "Habilidades"
 }

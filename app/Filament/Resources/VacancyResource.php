@@ -45,19 +45,44 @@ class VacancyResource extends Resource
             ->columns(1)
             ->schema([
 
+                /**
+                 * FORM WIZARD
+                 */
                 Wizard::make([
+
+                    /**
+                     * PASSO 1 - PESQUISAR VAGA
+                     */
                     Wizard\Step::make('Pesquisar Vaga')
                         ->schema([
+
+                            // ocupação
                             Forms\Components\Select::make('occupation_id')
                                 ->searchable()
-                                ->live()
+                                ->live(debounce: 100)
                                 ->required()
-                                ->afterStateUpdated(fn (Set $set) => $set('skyll_id', null))
+                                ->afterStateUpdated(fn (Set $set) => $set('skylls', null))
                                 ->preload(true)
                                 ->getSearchResultsUsing(fn (string $search): array => Occupation::getOccupationCustom($search))
                                 ->getOptionLabelUsing(fn ($value): ?string => Occupation::find($value)?->name),
+
+                            // habilidades
+                            Forms\Components\Select::make('skylls')
+                                ->relationship('skylls', 'description')
+                                ->options(fn (Get $get): Collection => Skyll::query()
+                                    ->where('occupation_id', $get('occupation_id'))
+                                    ->pluck('description', 'id'))
+                                ->searchable()
+                                ->required()
+                                ->live()
+                                ->multiple()
+                                ->preload(true),
+
                         ])->columns(1),
 
+                    /**
+                     * PASSO 2 - DADOS DA VAGA
+                     */
                     Wizard\Step::make('Dados da Vaga')
                         ->schema([
                             Forms\Components\Select::make('work_regime_id')
@@ -100,16 +125,17 @@ class VacancyResource extends Resource
                                     '18:00',
                                 ]),
                             Forms\Components\TextInput::make('salary')
-                                ->numeric()
-                                ->required()
-                                ->maxLength(9)
-                                ->default(null),
+                                ->string()
+                                ->required(),
                             Forms\Components\Toggle::make('has_benefits')
                                 ->required(),
                             Forms\Components\Textarea::make('extra_information')
                                 ->columnSpanFull(),
                         ])->columns(2),
-
+                    
+                    /**
+                     * PASSO 3 - PREFERENCIAS
+                     */
                     Wizard\Step::make('Preferências')
                         ->schema([
 
@@ -117,10 +143,12 @@ class VacancyResource extends Resource
                                 ->numeric()
                                 ->required()
                                 ->default(null),
+
                             Forms\Components\TextInput::make('max_age')
                                 ->numeric()
                                 ->required()
                                 ->default(null),
+
                             Forms\Components\Select::make('education_id')
                                 ->options([
                                     1 => "Ensino Fundamental Incompleto",
@@ -184,19 +212,14 @@ class VacancyResource extends Resource
                                 ->searchable()
                                 ->requiredWith('has_language')
                                 ->visible(fn ($get) => $get('has_language')),
-                            Forms\Components\Select::make('skylls')
-                                ->relationship('skylls', 'description')
-                                ->options(fn (Get $get): Collection => Skyll::query()
-                                    ->where('occupation_id', $get('occupation_id'))
-                                    ->pluck('description', 'id'))
-                                ->searchable()
-                                ->required()
-                                ->live()
-                                ->multiple()
-                                ->preload(true),
+
+
 
                         ])->columns(2),
-
+                    
+                    /**
+                     * PASSO 4 - EMPREGADOR
+                     */
                     Wizard\Step::make('Empregador')
                         ->schema([
                             Forms\Components\TextInput::make('company')
@@ -355,10 +378,11 @@ class VacancyResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('Processo de seleção')->url(fn (Vacancy $record): string => route(Pages\Selecao::getRouteName(), $record)),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
                 ]),
             ]);
     }
@@ -376,6 +400,7 @@ class VacancyResource extends Resource
             'index' => Pages\ListVacancies::route('/'),
             'create' => Pages\CreateVacancy::route('/create'),
             'edit' => Pages\EditVacancy::route('/{record}/edit'),
+            'selecao' => Pages\Selecao::route('/{record}/selecao'),
         ];
     }
 }

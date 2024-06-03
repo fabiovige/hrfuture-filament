@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Resources\VacancyResource\Widgets\VacancyStatsOverview;
 use Doctrine\DBAL\Schema\Column;
 use Filament\Forms\Components\Field;
 use Filament\Http\Middleware\Authenticate;
@@ -25,11 +26,12 @@ class AdminPanelProvider extends PanelProvider
     public function panel(Panel $panel): Panel
     {
         return $panel
-            ->bootUsing(function(){
-                Field::configureUsing(function(Field $field){
+            ->bootUsing(function () {
+                Field::configureUsing(function (Field $field) {
                     $field->translateLabel();
                 });
             })
+            ->brandLogo(asset('img/logo_mia.png'))
             ->profile()
             ->default()
             ->id('admin')
@@ -37,8 +39,9 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->registration()
             ->colors([
-                'primary' => Color::Cyan,
-                ])
+                'primary' => Color::Purple,
+            ])
+            ->viteTheme('resources/css/filament/admin/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
@@ -46,8 +49,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
-                Widgets\AccountWidget::class,
-                Widgets\FilamentInfoWidget::class,
+                //Widgets\AccountWidget::class,
+                //Widgets\FilamentInfoWidget::class,
+                VacancyStatsOverview::class,
             ])
             ->middleware([
                 EncryptCookies::class,
